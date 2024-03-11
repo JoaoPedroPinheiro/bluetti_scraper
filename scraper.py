@@ -28,7 +28,7 @@ def scrape_main_image(soup: BeautifulSoup):
             print("Error decoding JSON:", e)
 
 
-def scrape_shortdescription(soup: BeautifulSoup):
+def scrape_description_text(soup: BeautifulSoup):
     description = soup.find("ul", class_= "uk-list uk-list-disc uk-text-small uk-text-500")
 
     if description:
@@ -48,8 +48,8 @@ def scrape_url(url):
     product_url = url
     main_image_url = scrape_main_image(soup)
     # sub_image_urls
-    shortdescription = scrape_shortdescription(soup)
-    # description_text
+    # short description
+    description_text = scrape_description_text(soup)
     # description_images
     # priceOriginal
     # price_discount
@@ -60,7 +60,7 @@ def scrape_url(url):
     print(sku)
     print(product_url)
     print(main_image_url)
-    print(shortdescription)
+    print(description_text)
 
 
 
