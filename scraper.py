@@ -34,6 +34,17 @@ def scrape_description_text(soup: BeautifulSoup):
     if description:
         return [li.text.strip() for li in description.find_all('li')]
 
+def scrape_price_original(soup: BeautifulSoup):
+    normal_price_tag = soup.find("s", class_="uk-text-muted uk-text-500 price-item--regula uk-margin-small-left tm-linear-gradient-title")
+
+    if normal_price_tag:
+        return normal_price_tag.text.strip()
+
+def scrape_price_discount(soup: BeautifulSoup):
+    price_tag = soup.find("span", class_="uk-text-500 price-item--sale tm-linear-gradient-title")
+
+    if price_tag:
+        return price_tag.text.strip()
 
 def scrape_url(url):
     # response = requests.get(url)
@@ -48,11 +59,11 @@ def scrape_url(url):
     product_url = url
     main_image_url = scrape_main_image(soup)
     # sub_image_urls
-    # short description
+    # shortdescription
     description_text = scrape_description_text(soup)
     # description_images
-    # priceOriginal
-    # price_discount
+    price_original = scrape_price_original(soup)
+    price_discount = scrape_price_discount(soup)
     # specification
     # FAQ
 
@@ -60,7 +71,12 @@ def scrape_url(url):
     print(sku)
     print(product_url)
     print(main_image_url)
+    # print(sub_image_urls)
+    # print(shortdescription)
     print(description_text)
+    # print(description_text)
+    print(price_original)
+    print(price_discount)
 
 
 
