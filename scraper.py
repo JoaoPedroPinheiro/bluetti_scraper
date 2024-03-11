@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import json
 import pandas as pd
+from pandas import read_excel, DataFrame
 
 
 def scrape_sku(soup: BeautifulSoup):
@@ -29,9 +30,16 @@ def scrape_main_image(soup: BeautifulSoup):
         except json.JSONDecodeError as e:
             print("Error decoding JSON:", e)
 
-# def scrape_subtextimage(soup: BeautifulSoup):
-#     image_div = soup.find("div", {"data-main-product": True})
 
+def scrape_sub_image_urls(soup: BeautifulSoup):
+    images = soup.find("div", {"data-main-product":True}).find("div", class_="no-js-hidden tm-product-image-container").find_all("img", {"width":"1500"})
+
+    image_urls = []
+    for image in images:
+        image_urls.append(image.get("data-src").lstrip("//"))
+        # print(image.get("data-src").lstrip("//"))
+
+    return image_urls
 
 def scrape_shortdescription(soup: BeautifulSoup):
     description = soup.find("ul", class_= "uk-list uk-list-disc uk-text-small uk-text-500")
@@ -114,31 +122,32 @@ def scrape_faq(soup: BeautifulSoup):
 
 
 def scrape_url(url):
-    # response = requests.get(url)
+    response = requests.get(url)
 
-    with open("page.html", "r", encoding="utf-8") as file:
-        html_content = file.read()
+    # with open("page.html", "r", encoding="utf-8") as file:
+    #     html_content = file.read()
 
-    soup = BeautifulSoup(html_content, "html5lib")
+    soup = BeautifulSoup(response.content, "html5lib")
 
-    title = soup.find("title").text.strip()
-    sku = scrape_sku(soup)
-    product_url = url
-    main_image_url = scrape_main_image(soup)
-    # sub_image_urls
-    shortdescription = scrape_shortdescription(soup)
-    description_text = scrape_description_text(soup)
-    description_images = scrape_description_images(soup)
-    price_original = scrape_price_original(soup)
-    price_discount = scrape_price_discount(soup)
-    specification = scrape_specifications(soup)
-    faq = scrape_faq(soup)
-
+    return {
+        "title": soup.find("title").text.strip(),
+        "sku": scrape_sku(soup),
+        "product_url": url,
+        "main_image_url": scrape_main_image(soup),
+        "sub_image_urls": scrape_sub_image_urls(soup),
+        "shortdescription": scrape_shortdescription(soup),
+        "description_text": scrape_description_text(soup),
+        "description_images": scrape_description_images(soup),
+        "price_original": scrape_price_original(soup),
+        "price_discount": scrape_price_discount(soup),
+        "specification": scrape_specifications(soup),
+        "faq": scrape_faq(soup),
+    }
     # print(title)
     # print(sku)
     # print(product_url)
     # print(main_image_url)
-    # # print(sub_image_urls)
+    # print(sub_image_urls)
     # print(shortdescription)
     # print(description_text)
     # # print(description_images)
@@ -148,12 +157,45 @@ def scrape_url(url):
     # print(faq)
 
 
+def write_data_to_excel(scraped_data):
+    # Check if data.xlsx exists, if not create it with appropriate headers
+    try:
+        output_df = read_excel("data.xlsx")
+    except FileNotFoundError:
+        output_df = DataFrame(
+            columns=[
+                "title",
+                "sku",
+                "product_url",
+                "main_image_url",
+                "sub_image_urls",
+                "shortdescription",
+                "description_text",
+                "description_images",
+                "price_original",
+                "price_discount",
+                "specification",
+                "faq",
+            ]
+        )
+
+    # Append the scraped data to the dataframe
+    output_df = output_df._append(scraped_data, ignore_index=True)
+
+    # Save the updated dataframe to data.xlsx
+    output_df.to_excel("data.xlsx", index=False)
+
+
+
 def run():
-    urls = [
-        "https://www.bluettipower.eu/products/eb3a-pv120",
-        # "https://www.bluettipower.eu/products/eb3a-pv200",
-        # "https://www.bluettipower.eu/products/bluetti-m28-bayonet-3-pin-male-connector-for-ac500"
-    ]
+    # urls = [
+    #     "https://www.bluettipower.eu/products/eb3a-pv120",
+    #     "https://www.bluettipower.eu/products/eb3a-pv200",
+    #     "https://www.bluettipower.eu/products/bluetti-m28-bayonet-3-pin-male-connector-for-ac500"
+    # ]
+
+    urls = get_urls()
 
     for url in urls:
         scrapped_data = scrape_url(url)
+        write_data_to_excel(scrapped_data)
