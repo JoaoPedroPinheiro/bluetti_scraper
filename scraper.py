@@ -143,18 +143,6 @@ def scrape_url(url):
         "specification": scrape_specifications(soup),
         "faq": scrape_faq(soup),
     }
-    # print(title)
-    # print(sku)
-    # print(product_url)
-    # print(main_image_url)
-    # print(sub_image_urls)
-    # print(shortdescription)
-    # print(description_text)
-    # # print(description_images)
-    # print(price_original)
-    # print(price_discount)
-    # print(specification)
-    # print(faq)
 
 
 def write_data_to_excel(scraped_data):
@@ -185,6 +173,13 @@ def write_data_to_excel(scraped_data):
     # Save the updated dataframe to data.xlsx
     output_df.to_excel("data.xlsx", index=False)
 
+
+def get_urls():
+    # Load the spreadsheet
+    urls_df = read_excel("urls.xlsx")
+
+    # Return the filtered URLs
+    return urls_df["URLs"].tolist()
 
 
 def run():
