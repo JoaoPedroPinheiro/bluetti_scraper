@@ -30,11 +30,25 @@ def scrape_main_image(soup: BeautifulSoup):
             print("Error decoding JSON:", e)
 
 
-def scrape_description_text(soup: BeautifulSoup):
+# def scrape_subtextimage(soup: BeautifulSoup):
+#     image_div = soup.find("div", {"data-main-product": True})
+
+
+def scrape_shortdescription(soup: BeautifulSoup):
     description = soup.find("ul", class_= "uk-list uk-list-disc uk-text-small uk-text-500")
 
     if description:
         return [li.text.strip() for li in description.find_all('li')]
+
+
+def scrape_description_text(soup: BeautifulSoup):
+    items = soup.find("div", class_="uk-position-relative uk-hidden", attrs={"data-filter": "group_1"}).find_all("div", class_="uk-section")
+
+    descriptions = []
+    for item in items:
+        descriptions.append(item.text.strip())
+
+    return descriptions
 
 
 def scrape_price_original(soup: BeautifulSoup):
@@ -81,13 +95,11 @@ def scrape_faq(soup: BeautifulSoup):
         answer = item.find("div")
 
         if question and answer:
-            print("Question:", question)
-            print("Answer:" , answer)
-
             # Append question and answer to list
             qa_list.append(f"{question.text.strip()} A: {answer.text.strip()}")
 
     return qa_list
+
 
 def scrape_url(url):
     # response = requests.get(url)
@@ -102,7 +114,7 @@ def scrape_url(url):
     product_url = url
     main_image_url = scrape_main_image(soup)
     # sub_image_urls
-    # shortdescription
+    shortdescription = scrape_shortdescription(soup)
     description_text = scrape_description_text(soup)
     # description_images
     price_original = scrape_price_original(soup)
@@ -110,18 +122,18 @@ def scrape_url(url):
     specification = scrape_specifications(soup)
     faq = scrape_faq(soup)
 
-    print(title)
-    print(sku)
-    print(product_url)
-    print(main_image_url)
-    # print(sub_image_urls)
+    # print(title)
+    # print(sku)
+    # print(product_url)
+    # print(main_image_url)
+    # # print(sub_image_urls)
     # print(shortdescription)
-    print(description_text)
-    # print(description_images)
-    print(price_original)
-    print(price_discount)
-    print(specification)
-    print(faq)
+    # print(description_text)
+    # # print(description_images)
+    # print(price_original)
+    # print(price_discount)
+    # print(specification)
+    # print(faq)
 
 
 def run():
