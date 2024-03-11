@@ -46,6 +46,20 @@ def scrape_price_discount(soup: BeautifulSoup):
     if price_tag:
         return price_tag.text.strip()
 
+def scrape_specifications(soup: BeautifulSoup):
+    specs = soup.find('div', {'data-tech-content': True})
+
+    sections = specs.find_all("div", class_="uk-margin-medium")
+
+    section_texts = []
+
+    for section in sections:
+        section_text = section.get_text(separator=" ", strip=True)
+        section_texts.append(section_text)
+
+    return section_texts
+
+
 def scrape_url(url):
     # response = requests.get(url)
 
@@ -64,7 +78,7 @@ def scrape_url(url):
     # description_images
     price_original = scrape_price_original(soup)
     price_discount = scrape_price_discount(soup)
-    # specification
+    specification = scrape_specifications(soup)
     # FAQ
 
     print(title)
@@ -74,9 +88,10 @@ def scrape_url(url):
     # print(sub_image_urls)
     # print(shortdescription)
     print(description_text)
-    # print(description_text)
+    # print(description_images)
     print(price_original)
     print(price_discount)
+    print(specification)
 
 
 
