@@ -29,7 +29,6 @@ def scrape_main_image(soup: BeautifulSoup):
         except json.JSONDecodeError as e:
             print("Error decoding JSON:", e)
 
-
 # def scrape_subtextimage(soup: BeautifulSoup):
 #     image_div = soup.find("div", {"data-main-product": True})
 
@@ -49,6 +48,19 @@ def scrape_description_text(soup: BeautifulSoup):
         descriptions.append(item.text.strip())
 
     return descriptions
+
+
+def scrape_description_images(soup: BeautifulSoup):
+    images = (soup.find("div", class_="uk-position-relative uk-hidden", attrs={"data-filter": "group_1"})
+             .find_all("div", class_="uk-container uk-container-large uk-section uk-padding-remove-bottom uk-text-center"))
+
+    image_urls = []
+
+    for image in images:
+        image_url = image.find("source", media="(min-width: 1200px)").get("srcset").lstrip("//")
+        image_urls.append(image_url)
+
+    return image_urls
 
 
 def scrape_price_original(soup: BeautifulSoup):
@@ -116,7 +128,7 @@ def scrape_url(url):
     # sub_image_urls
     shortdescription = scrape_shortdescription(soup)
     description_text = scrape_description_text(soup)
-    # description_images
+    description_images = scrape_description_images(soup)
     price_original = scrape_price_original(soup)
     price_discount = scrape_price_discount(soup)
     specification = scrape_specifications(soup)
