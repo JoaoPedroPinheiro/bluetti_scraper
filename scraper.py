@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 import json
 import pandas as pd
 
+
 def scrape_sku(soup: BeautifulSoup):
     script_tags = soup.find_all("script", type="application/ld+json")
 
@@ -14,6 +15,7 @@ def scrape_sku(soup: BeautifulSoup):
                 return json_content.get("sku")
         except json.JSONDecodeError as e:
             print("Error decoding JSON:", e)
+
 
 def scrape_main_image(soup: BeautifulSoup):
     script_tags = soup.find_all("script", type="application/ld+json")
@@ -34,17 +36,20 @@ def scrape_description_text(soup: BeautifulSoup):
     if description:
         return [li.text.strip() for li in description.find_all('li')]
 
+
 def scrape_price_original(soup: BeautifulSoup):
     normal_price_tag = soup.find("s", class_="uk-text-muted uk-text-500 price-item--regula uk-margin-small-left tm-linear-gradient-title")
 
     if normal_price_tag:
         return normal_price_tag.text.strip()
 
+
 def scrape_price_discount(soup: BeautifulSoup):
     price_tag = soup.find("span", class_="uk-text-500 price-item--sale tm-linear-gradient-title")
 
     if price_tag:
         return price_tag.text.strip()
+
 
 def scrape_specifications(soup: BeautifulSoup):
     specs = soup.find('div', {'data-tech-content': True})
@@ -59,6 +64,30 @@ def scrape_specifications(soup: BeautifulSoup):
 
     return section_texts
 
+
+def scrape_faq(soup: BeautifulSoup):
+    items = soup.find("div", {"data-filter": "group_4"}).find_all("li")
+
+    # print(len(items))
+
+    qa_list = []
+    for item in items:
+        # print(item.string)
+
+        # Extract question
+        question = item.find("a")
+
+        # Extract answer
+        answer = item.find("div")
+
+        if question and answer:
+            print("Question:", question)
+            print("Answer:" , answer)
+
+            # Append question and answer to list
+            qa_list.append(f"{question.text.strip()} A: {answer.text.strip()}")
+
+    return qa_list
 
 def scrape_url(url):
     # response = requests.get(url)
@@ -79,7 +108,7 @@ def scrape_url(url):
     price_original = scrape_price_original(soup)
     price_discount = scrape_price_discount(soup)
     specification = scrape_specifications(soup)
-    # FAQ
+    faq = scrape_faq(soup)
 
     print(title)
     print(sku)
@@ -92,7 +121,7 @@ def scrape_url(url):
     print(price_original)
     print(price_discount)
     print(specification)
-
+    print(faq)
 
 
 def run():
