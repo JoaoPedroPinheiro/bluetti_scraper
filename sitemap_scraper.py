@@ -24,3 +24,5 @@ def get_urls():
 
     # # Save the DataFrame to an Excel file
     urls_df.to_excel("urls.xlsx", index=False)
+
+get_urls()

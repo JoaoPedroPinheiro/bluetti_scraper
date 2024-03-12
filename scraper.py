@@ -37,7 +37,6 @@ def scrape_sub_image_urls(soup: BeautifulSoup):
     image_urls = []
     for image in images:
         image_urls.append(image.get("data-src").lstrip("//"))
-        # print(image.get("data-src").lstrip("//"))
 
     return image_urls
 
@@ -102,11 +101,9 @@ def scrape_specifications(soup: BeautifulSoup):
 def scrape_faq(soup: BeautifulSoup):
     items = soup.find("div", {"data-filter": "group_4"}).find_all("li")
 
-    # print(len(items))
 
     qa_list = []
     for item in items:
-        # print(item.string)
 
         # Extract question
         question = item.find("a")
@@ -177,6 +174,7 @@ def write_data_to_excel(scraped_data):
 def get_urls():
     # Load the spreadsheet
     urls_df = read_excel("urls.xlsx")
+    urls_df = urls_df[urls_df.iloc[:, 1] == 'x']
 
     # Return the filtered URLs
     return urls_df["URLs"].tolist()
@@ -190,7 +188,11 @@ def run():
     # ]
 
     urls = get_urls()
+    print(urls)
+    print(urls)
 
     for url in urls:
         scrapped_data = scrape_url(url)
         write_data_to_excel(scrapped_data)
+
+run()
