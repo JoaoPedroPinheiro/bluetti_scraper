@@ -1,8 +1,8 @@
 import requests
 from bs4 import BeautifulSoup
 import json
-import pandas as pd
 from pandas import read_excel, DataFrame
+import traceback
 
 
 def scrape_sku(soup: BeautifulSoup):
@@ -32,11 +32,29 @@ def scrape_main_image(soup: BeautifulSoup):
 
 
 def scrape_sub_image_urls(soup: BeautifulSoup):
-    images = soup.find("div", {"data-main-product":True}).find("div", class_="no-js-hidden tm-product-image-container").find_all("img", {"width":"1500"})
-
     image_urls = []
-    for image in images:
-        image_urls.append(image.get("data-src").lstrip("//"))
+    try:
+        images = soup.find("div", {"data-main-product":True}).find("div", class_="no-js-hidden tm-product-image-container").find_all("img", {"width":"1500"})
+
+        for image in images:
+            image_urls.append(image.get("data-src").lstrip("//"))
+    except Exception as e:
+        pass
+
+    try:
+        images = soup.find("div", class_="Product__SlideshowNavScroller").find_all("a")
+
+        for image in images:
+            image_urls.append(image.get("href").lstrip("//"))
+    except Exception as e:
+        pass
+
+    try:
+        images = soup.find("div", {"data-section-type": "main-product-bucks"}).find_all("img", {"width":"2880"})
+        for image in images:
+            image_urls.append(image.get("data-src").lstrip("//"))
+    except Exception as e:
+        pass
 
     return image_urls
 
@@ -48,24 +66,34 @@ def scrape_shortdescription(soup: BeautifulSoup):
 
 
 def scrape_description_text(soup: BeautifulSoup):
-    items = soup.find("div", class_="uk-position-relative uk-hidden", attrs={"data-filter": "group_1"}).find_all("div", class_="uk-section")
-
     descriptions = []
-    for item in items:
-        descriptions.append(item.text.strip())
+
+    try:
+        items = soup.find("div", class_="uk-position-relative uk-hidden", attrs={"data-filter": "group_1"}).find_all("div", class_="uk-section")
+
+        for item in items:
+            descriptions.append(item.text.strip())
+
+    except Exception as e:
+        pass
 
     return descriptions
 
 
 def scrape_description_images(soup: BeautifulSoup):
-    images = (soup.find("div", class_="uk-position-relative uk-hidden", attrs={"data-filter": "group_1"})
-             .find_all("div", class_="uk-container uk-container-large uk-section uk-padding-remove-bottom uk-text-center"))
-
     image_urls = []
 
-    for image in images:
-        image_url = image.find("source", media="(min-width: 1200px)").get("srcset").lstrip("//")
-        image_urls.append(image_url)
+    try:
+        images = (soup.find("div", class_="uk-position-relative uk-hidden", attrs={"data-filter": "group_1"})
+             .find_all("div", class_="uk-container uk-container-large uk-section uk-padding-remove-bottom uk-text-center"))
+
+
+        for image in images:
+            image_url = image.find("source", media="(min-width: 1200px)").get("srcset").lstrip("//")
+            image_urls.append(image_url)
+    except Exception as e:
+        pass
+        # print("Description images not present")
 
     return image_urls
 
@@ -85,35 +113,56 @@ def scrape_price_discount(soup: BeautifulSoup):
 
 
 def scrape_specifications(soup: BeautifulSoup):
-    specs = soup.find('div', {'data-tech-content': True})
-
-    sections = specs.find_all("div", class_="uk-margin-medium")
-
     section_texts = []
+    try:
+        specs = soup.find('div', {'data-tech-content': True})
 
-    for section in sections:
-        section_text = section.get_text(separator=" ", strip=True)
-        section_texts.append(section_text)
+        sections = specs.find_all("div", class_="uk-margin-medium")
+
+
+        for section in sections:
+            section_text = section.get_text(separator=" ", strip=True)
+            section_texts.append(section_text)
+
+    except Exception as e:
+        pass
 
     return section_texts
 
 
 def scrape_faq(soup: BeautifulSoup):
-    items = soup.find("div", {"data-filter": "group_4"}).find_all("li")
-
-
     qa_list = []
-    for item in items:
 
-        # Extract question
-        question = item.find("a")
+    try:
+        items = soup.find("div", {"data-filter": "group_4"}).find_all("li")
 
-        # Extract answer
-        answer = item.find("div")
+        for item in items:
 
-        if question and answer:
-            # Append question and answer to list
-            qa_list.append(f"{question.text.strip()} A: {answer.text.strip()}")
+            # Extract question
+            question = item.find("a")
+
+            # Extract answer
+            answer = item.find("div")
+
+            if question and answer:
+                # Append question and answer to list
+                qa_list.append(f"{question.text.strip()} A: {answer.text.strip()}")
+    except Exception as e:
+        pass
+
+    try:
+        items = soup.find_all("div", {"data-pf-type": "Accordion.Content.Wrapper"})
+
+        for item in items:
+
+            question = item.find("button").find("span")
+            answer = item.find("div", {"div data-pf-expandable":"true"})
+
+            if question and answer:
+                qa_list.append(f"{question.text.strip()} A: {answer.text.strip()}")
+
+    except Exception as e:
+        pass
 
     return qa_list
 
@@ -174,7 +223,7 @@ def write_data_to_excel(scraped_data):
 def get_urls():
     # Load the spreadsheet
     urls_df = read_excel("urls.xlsx")
-    urls_df = urls_df[urls_df.iloc[:, 1] == 'x']
+    # urls_df = urls_df[urls_df.iloc[:, 1] == 'x']
 
     # Return the filtered URLs
     return urls_df["URLs"].tolist()
@@ -195,6 +244,8 @@ def run():
 
         except Exception as e:
             print(url, e)
+            traceback.print_exc()
+
 
 
         write_data_to_excel(scrapped_data)
