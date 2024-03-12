@@ -188,11 +188,15 @@ def run():
     # ]
 
     urls = get_urls()
-    print(urls)
-    print(urls)
 
     for url in urls:
-        scrapped_data = scrape_url(url)
+        try:
+            scrapped_data = scrape_url(url)
+
+        except Exception as e:
+            print(url, e)
+
+
         write_data_to_excel(scrapped_data)
 
 run()
