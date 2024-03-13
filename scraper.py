@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 import json
 from pandas import read_excel, DataFrame
 import traceback
+import re
 
 
 def scrape_sku(soup: BeautifulSoup):
@@ -34,7 +35,7 @@ def scrape_main_image(soup: BeautifulSoup):
 def scrape_sub_image_urls(soup: BeautifulSoup):
     image_urls = []
     try:
-        images = soup.find("div", {"data-main-product":True}).find("div", class_="no-js-hidden tm-product-image-container").find_all("img", {"width":"1500"})
+        images = soup.find("div", {"data-main-product":True}).find_all("img")
 
         for image in images:
             image_urls.append(image.get("data-src").lstrip("//"))
@@ -70,22 +71,38 @@ def scrape_sub_image_urls(soup: BeautifulSoup):
     except Exception as e:
         pass
 
+    try:
+        images = soup.find("div", class_="uk-position-relative uk-border-rounded uk-overflow-hidden")
+        for image in images:
+            image_urls.append(image.get("src").lstrip("//"))
+    except Exception as e:
+        pass
+
     return image_urls
 
+
 def scrape_shortdescription(soup: BeautifulSoup):
-    description = soup.find("ul", class_= "uk-list uk-list-disc uk-text-small uk-text-500")
+    description = soup.find("meta", {"name": "description"})
+    if description:
+        return description.get("content").strip()
+
+    description = soup.find("meta", property="og:description")
+    if description:
+        return description.get("content").strip()
+
+    pattern = re.compile("uk-list uk-list-disc uk-text-small uk-text-500")
+    description = soup.find("ul", class_= pattern)
 
     if description:
         return [li.text.strip() for li in description.find_all('li')]
 
     description = soup.find("div", class_="uk-display-block uk-margin-top")
     if description:
-        return [li.text.strip() for li in description.find_all("li", {"data-mce-fragment":"1"})]
-
-    description = soup.find("meta", {"name":"description"})
-    if description:
-        return description.get("content").strip()
-
+        result = [li.text.strip() for li in description.find_all("li", {"data-mce-fragment":"1"})]
+        if result:
+            return result
+        else:
+            return [span.text.strip() for span in description.find_all("span")]
 
 
 def scrape_description_text(soup: BeautifulSoup):
@@ -101,17 +118,23 @@ def scrape_description_text(soup: BeautifulSoup):
         pass
 
     try:
-        #class="uk-section uk-section-default " data-filter="group_1"
-        items = soup.find_all("div", class_="uk-section uk-section-default ", attrs={"data-filter": "group_1"})
+        items = soup.find_all("div", class_="uk-section uk-section-default", attrs={"data-filter": "group_1"})
 
         for item in items:
             descriptions.append(item.find("div", class_="uk-container uk-container-small").text.strip())
-
     except Exception as e:
         pass
 
     try:
+        # items = soup.find_all("div", class_="uk-section uk-section-default ", attrs={"data-filter": "group_1"})
+        items = soup.find_all("div", class_="uk-section uk-section-default")
 
+        for item in items:
+            descriptions.append(item.text.strip())
+    except Exception as e:
+        pass
+
+    try:
         items = soup.find("div", class_="uk-position-relative uk-hidden", attrs={"data-filter": "group_1"}).find_all("div", class_="uk-section ")
 
         for item in items:
@@ -130,13 +153,13 @@ def scrape_description_images(soup: BeautifulSoup):
         images = (soup.find("div", class_="uk-position-relative uk-hidden", attrs={"data-filter": "group_1"})
              .find_all("div", class_="uk-container uk-container-large uk-section uk-padding-remove-bottom uk-text-center"))
 
-
         for image in images:
             image_url = image.find("source", media="(min-width: 1200px)").get("srcset").lstrip("//")
             image_urls.append(image_url)
     except Exception as e:
         pass
-        # print("Description images not present")
+
+
 
     return image_urls
 
@@ -147,10 +170,19 @@ def scrape_price_original(soup: BeautifulSoup):
     if normal_price_tag:
         return normal_price_tag.text.strip()
 
+    normal_price_tag = soup.find("span", class_="ProductMeta__Price Price Price--highlight Text--subdued u-h4")
+    if normal_price_tag:
+        return normal_price_tag.text.strip()
+
+
 
 def scrape_price_discount(soup: BeautifulSoup):
     price_tag = soup.find("span", class_="uk-text-500 price-item--sale tm-linear-gradient-title")
 
+    if price_tag:
+        return price_tag.text.strip()
+
+    price_tag = soup.find("span", class_="ProductMeta__Price Price Price--compareAt Text--subdued u-h4")
     if price_tag:
         return price_tag.text.strip()
 
@@ -278,6 +310,10 @@ def run():
     #     "https://www.bluettipower.eu/products/eb3a-pv200",
     #     "https://www.bluettipower.eu/products/bluetti-m28-bayonet-3-pin-male-connector-for-ac500"
     # ]
+    #
+    # scrapped_data = scrape_url("https://www.bluettipower.eu/products/bluetti-ac200p-portable-solar-generator-3-120w-solar-panel")
+    #
+    # write_data_to_excel(scrapped_data)
 
     urls = get_urls()
 
@@ -288,8 +324,6 @@ def run():
         except Exception as e:
             print(url, e)
             traceback.print_exc()
-
-
 
         write_data_to_excel(scrapped_data)
 
