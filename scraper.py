@@ -159,7 +159,57 @@ def scrape_description_images(soup: BeautifulSoup):
     except Exception as e:
         pass
 
+    try:
+        images = soup.find_all("img", class_="uk-visible@s")
 
+        for image in images:
+            image_url = image.get("data-src").lstrip("//")
+            image_urls.append(image_url)
+    except Exception as e:
+        pass
+
+
+    try:
+        images = soup.find("div", class_="uk-position-relative uk-hidden", attrs={"data-filter": "group_1"}).find_all(
+            "div", class_="uk-section")
+
+        for image in images:
+            image_url = image.find("p").find("img").get("data-src")
+            image_urls.append(image_url)
+
+    except Exception as e:
+        pass
+
+    try:
+        images = soup.find_all("div", class_="uk-section uk-section-default", attrs={"data-filter": "group_1"})
+
+        for image in images:
+            image_url = image.find("p").find("img").get("data-src")
+            image_urls.append(image_url)
+
+    except Exception as e:
+        pass
+
+    try:
+        images = soup.find_all("div", class_="uk-section uk-section-default")
+
+        for image in images:
+            image_url = image.find("p").find("img").get("data-src")
+            image_urls.append(image_url)
+
+    except Exception as e:
+        pass
+
+    try:
+        images = soup.find("div", class_="uk-position-relative uk-hidden", attrs={"data-filter": "group_1"}).find_all(
+            "div", class_="uk-section ")
+
+        for image in images:
+            image_url = image.find("p").find("img").get("data-src")
+            image_urls.append(image_url)
+
+    except Exception as e:
+        pass
 
     return image_urls
 
@@ -173,7 +223,6 @@ def scrape_price_original(soup: BeautifulSoup):
     normal_price_tag = soup.find("span", class_="ProductMeta__Price Price Price--highlight Text--subdued u-h4")
     if normal_price_tag:
         return normal_price_tag.text.strip()
-
 
 
 def scrape_price_discount(soup: BeautifulSoup):
