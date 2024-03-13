@@ -82,6 +82,10 @@ def scrape_shortdescription(soup: BeautifulSoup):
     if description:
         return [li.text.strip() for li in description.find_all("li", {"data-mce-fragment":"1"})]
 
+    description = soup.find("meta", {"name":"description"})
+    if description:
+        return description.get("content").strip()
+
 
 
 def scrape_description_text(soup: BeautifulSoup):
