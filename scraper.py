@@ -56,6 +56,20 @@ def scrape_sub_image_urls(soup: BeautifulSoup):
     except Exception as e:
         pass
 
+    try:
+        images = soup.find("div", class_="no-js-hidden tm-product-image-container").find_all("img", {"width":"2000"})
+        for image in images:
+            image_urls.append(image.get("data-src").lstrip("//"))
+    except Exception as e:
+        pass
+
+    try:
+        images = soup.find("div", class_="lg:col-span-4").find_all("img", {"width":"2000"})
+        for image in images:
+            image_urls.append(image.get("src").lstrip("//"))
+    except Exception as e:
+        pass
+
     return image_urls
 
 def scrape_shortdescription(soup: BeautifulSoup):
@@ -64,12 +78,37 @@ def scrape_shortdescription(soup: BeautifulSoup):
     if description:
         return [li.text.strip() for li in description.find_all('li')]
 
+    description = soup.find("div", class_="uk-display-block uk-margin-top")
+    if description:
+        return [li.text.strip() for li in description.find_all("li", {"data-mce-fragment":"1"})]
+
+
 
 def scrape_description_text(soup: BeautifulSoup):
     descriptions = []
 
     try:
         items = soup.find("div", class_="uk-position-relative uk-hidden", attrs={"data-filter": "group_1"}).find_all("div", class_="uk-section")
+
+        for item in items:
+            descriptions.append(item.text.strip())
+
+    except Exception as e:
+        pass
+
+    try:
+        #class="uk-section uk-section-default " data-filter="group_1"
+        items = soup.find_all("div", class_="uk-section uk-section-default ", attrs={"data-filter": "group_1"})
+
+        for item in items:
+            descriptions.append(item.find("div", class_="uk-container uk-container-small").text.strip())
+
+    except Exception as e:
+        pass
+
+    try:
+
+        items = soup.find("div", class_="uk-position-relative uk-hidden", attrs={"data-filter": "group_1"}).find_all("div", class_="uk-section ")
 
         for item in items:
             descriptions.append(item.text.strip())
